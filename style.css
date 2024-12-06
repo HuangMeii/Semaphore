@@ -1,0 +1,121 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  background: url('https://example.com/superhero-background.jpg') no-repeat center center fixed;
+  background-size: cover;
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: white;
+}
+.container {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 900px;
+  color: #333; 
+}
+h1 {
+  color: #2980b9;
+  text-align: center;
+  margin-bottom: 30px;
+}
+.controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  background-color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+.spacer {
+  width: 20px;
+  background-color: white;
+}
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  width: 240px;
+}
+button:hover {
+  background-color: #2980b9;
+}
+button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+.status {
+  background-color: #e0e0e0;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+.timeline {
+  display: flex;
+  margin-bottom: 20px;
+}
+.timeline-section {
+  flex: 1;
+  padding: 10px;
+  background-color: #f1f8e9;
+  border: 1px solid #c5e1a5;
+  border-radius: 5px; 
+}
+.timeline-section h3 {
+  margin-top: 0;
+  color: #33691e;
+}
+.log {
+  height: 32df0px; 
+  overflow-y: auto;
+  background-color: #f0f0f0; 
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #e0e0e0;  
+  font-family: monospace; 
+  color: #2c3e50; 
+}
+.log p {
+  margin: 3px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.log .read {
+  color: #27ae60; 
+}
+.log .write {
+  color: #c0392b; 
+}
+.log .system {
+  color: #3498db; 
+}
+.log .wait {
+  color: #e67e22; 
+}
+.slide-button {
+  width: 90px;
+  position: absolute; 
+  top: 20px; 
+  left: 20px; 
+  padding: 8px 6px; 
+  font-size: 14px; 
+  background-color: #1bc480;  
+  color: white; 
+  border: none; 
+  border-radius: 50px; 
+  cursor: pointer; 
+  transition: background-color 0.3s; 
+}
+.slide-button:hover {
+  background-color: #27a572; 
+}

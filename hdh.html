@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mô phỏng Semaphores Đọc - Ghi </title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <button class="slide-button" onclick="window.location.href='https://www.canva.com/design/DAGYVtCI-GY/XdH3uu0okamNTlZuEweTag/edit'">Slide</button>
+    <div class="container">
+      <h1>Mô phỏng Semaphores Đọc - Ghi</h1>
+      <div class="controls">
+        <button id="readBtn">Thêm tiến trình đọc</button>
+        <div class="spacer"></div>
+        <button id="writeBtn">Thêm tiến trình ghi</button>
+        <div class="spacer"></div>
+        <button id="resetBtn">Đặt lại</button>
+      </div>
+      <div class="status" id="status">Trạng thái: Sẵn sàng</div>
+      <div class="timeline">
+        <div class="timeline-section" style="margin-right: 10px;">
+          <h3>Tiến trình đang chờ</h3>
+          <div id="waitingProcesses"></div>
+        </div>
+        <div class="timeline-section" style="margin-left: 10px;">
+          <h3>Tiến trình đang thực hiện</h3>
+          <div id="activeProcesses"></div>
+        </div>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+
+    <script>
+      let readCount = 0;
+      let writeCount = 0;
+      let waitingCount = 0;
+      let semaphores = {
+        mutex: 1,
+        wrt: 1
+      };
+      let processId = 0;
+
+      function updateUI() {
+      }
+
+      function log(message, type = 'system') {
+        const logElement = document.getElementById('log');
+        const lastLog = logElement.lastElementChild;
+        const newLog = `[${new Date().toLocaleTimeString()}] ${message}`;
+        
+        if (!lastLog || lastLog.textContent !== newLog) {
+          const p = document.createElement('p');
+          p.textContent = newLog;
+          p.classList.add(type);
+          logElement.appendChild(p);
+          logElement.scrollTop = logElement.scrollHeight;
+        }
+      }
+
+      function updateTimeline(id, action, isWaiting) {
+        const container = isWaiting
+          ? document.getElementById('waitingProcesses')
+          : document.getElementById('activeProcesses');
+        const lastEntry = container.lastElementChild;
+        const newEntry = `${action} ${id}`;
+        
+        if (!lastEntry || lastEntry.textContent !== newEntry) {
+          const element = document.createElement('p');
+          element.textContent = newEntry;
+          container.appendChild(element);
+          setTimeout(() => element.remove(), 5000);
+        }
+      }
+
+      async function wait(semaphore, processType, id) {
+        return new Promise((resolve) => {
+          const check = () => {
+            if (semaphores[semaphore] > 0) {
+              semaphores[semaphore]--;
+              log(`${processType} ${id}: Đã nhận được quyền truy cập.`, processType);
+              resolve();
+            } else {
+              waitingCount++;
+              log(`${processType} ${id}: Đang chờ quyền truy cập...`, 'wait');
+              setTimeout(check, Math.random() * 3000 + 2000);
+            }
+          };
+          check();
+        });
+      }
+
+      function signal(semaphore, processType, id) {
+        semaphores[semaphore]++;
+        log(`${processType} ${id}
+        : Đã giải phóng quyền truy cập.`, processType);
+      }
+
+      async function read(id) {
+        log(`Tiến trình đọc ${id} bắt đầu`, 'read');
+        updateTimeline(id, 'Đọc', true);
+
+        await wait('mutex', 'Đọc', id);
+        readCount++;
+        log(`Đọc ${id}: số lượng đọc = ${readCount}`, 'read');
+        if (readCount === 1) {
+          log(`Đọc ${id}: Tiến trình đọc đầu tiên, chờ quyền ghi`, 'read');
+          await wait('wrt', 'Đọc', id);
+        }
+        signal('mutex', 'Đọc', id);
+
+        updateUI();
+        updateTimeline(id, 'Đọc', false);
+        document.getElementById('status').textContent = `Trạng thái: Đang đọc (${readCount} tiến trình)`;
+        log(`Tiến trình đọc ${id} đang thực hiện`, 'read');
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 5000 + 3000));
+
+        await wait('mutex', 'Đọc', id);
+        readCount--;
+        log(`Đọc ${id}: Số lượng đọc = ${readCount}`, 'read');
+        if (readCount === 0) {
+          log(`Đọc ${id}: Tiến trình đọc cuối cùng, giải phóng quyền ghi`, 'read');
+          signal('wrt', 'Đọc', id);
+        }
+        signal('mutex', 'Đọc', id);
+
+        updateUI();
+        log(`Tiến trình đọc ${id} kết thúc`, 'read');
+
+        // Kiểm tra nếu không còn tiến trình nào đang thực hiện hoặc đang chờ
+        if (readCount === 0 && writeCount === 0) {
+          waitingCount = 0; // Đặt waitingCount về 0
+          updateUI(); // Cập nhật giao diện
+          document.getElementById('status').textContent = 'Trạng thái: Sẵn sàng';
+        }
+      }
+
+      async function write(id) {
+        log(`Tiến trình ghi ${id} bắt đầu`, 'write');
+        updateTimeline(id, 'Ghi', true);
+
+        await wait('wrt', 'Ghi', id);
+        writeCount++;
+
+        updateUI();
+        updateTimeline(id, 'Ghi', false);
+        document.getElementById('status').textContent = 'Trạng thái: Đang ghi';
+        log(`Tiến trình ghi ${id} đang thực hiện`, 'write');
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 7000 + 5000));
+
+        writeCount--;
+        signal('wrt', 'Ghi', id);
+
+        updateUI();
+        log(`Tiến trình ghi ${id} kết thúc`, 'write');
+
+        // Kiểm tra nếu không còn tiến trình nào đang thực hiện hoặc đang chờ
+        if (readCount === 0 && writeCount === 0) {
+          waitingCount = 0; // Đặt waitingCount về 0
+          updateUI(); // Cập nhật giao diện
+          document.getElementById('status').textContent = 'Trạng thái: Sẵn sàng';
+        }
+      }
+
+      document.getElementById('readBtn').addEventListener('click', () => read(++processId));
+      document.getElementById('writeBtn').addEventListener('click', () => write(++processId));
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        readCount = 0;
+        writeCount = 0;
+        waitingCount = 0;
+        semaphores = {
+          mutex: 1,
+          wrt: 1
+        };
+        processId = 0;
+        updateUI();
+        document.getElementById('status').textContent = 'Trạng thái: Sẵn sàng';
+        document.getElementById('log').innerHTML = '';
+        document.getElementById('waitingProcesses').innerHTML = '';
+        document.getElementById('activeProcesses').innerHTML = '';
+        log('Hệ thống đã được đặt lại', 'system');
+      });
+    </script>
+  </body>
+</html>
+
+
+
+
+
+
+
